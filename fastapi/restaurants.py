@@ -16,8 +16,9 @@ async def list_restaurants():
     cursor = db.restaurants.find({}, {"_id": 0, "password": 0})
     restaurants = []
     async for r in cursor:
-        if r.get("image_path"):
-            r["image_url"] = f"/uploads/{r['image_path']}"
+        img_path = r.get("image_path")
+        if img_path and os.path.exists(os.path.join("uploads", img_path)):
+            r["image_url"] = f"/uploads/{img_path}"
         else:
             r["image_url"] = ""
         restaurants.append(r)
@@ -26,13 +27,24 @@ async def list_restaurants():
 
 
 @router.get("/restaurants/{restaurant_id}")
-async def get_restaurant(restaurant_id: int):
+async def get_restaurant(restaurant_id: str):
     db = get_db()
-    rest = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "password": 0})
+    query = {
+        "$or": [
+            {"id": int(restaurant_id) if restaurant_id.isdigit() else -1},
+            {"id": restaurant_id},
+            {"name": {"$regex": f"^{restaurant_id}$", "$options": "i"}}
+        ]
+    }
+    rest = await db.restaurants.find_one(query, {"_id": 0, "password": 0})
     if not rest:
         raise HTTPException(status_code=404, detail="Restaurant not found")
 
-    rest["image_url"] = f"/uploads/{rest['image_path']}" if rest.get("image_path") else ""
+    img_path = rest.get("image_path")
+    if img_path and os.path.exists(os.path.join("uploads", img_path)):
+        rest["image_url"] = f"/uploads/{img_path}"
+    else:
+        rest["image_url"] = ""
     return rest
 
 

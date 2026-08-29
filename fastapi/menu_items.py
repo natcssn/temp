@@ -6,14 +6,57 @@ router = APIRouter(tags=["Menu Items"])
 
 
 @router.get("/menu/{restaurant_id}")
-async def get_menu(restaurant_id: int, all: bool = False):
+async def get_menu(restaurant_id: str, all: bool = False):
     """Get menu items for a restaurant. If all=False (default), only available items."""
     db = get_db()
 
-    query = {"restaurant_id": restaurant_id}
-    if not all:
-        query["is_available"] = True
+    base_filter = {} if all else {"is_available": True}
 
+    # 1. Try matching integer ID if numeric
+    if restaurant_id.isdigit():
+        r_id = int(restaurant_id)
+        query = {**base_filter, "$or": [{"restaurant_id": r_id}, {"restaurant_id": str(r_id)}]}
+        cursor = db.menu_items.find(query, {"_id": 0})
+        items = await cursor.to_list(length=500)
+        if items:
+            return {"items": items}
+
+    # 2. Try looking up restaurant by name or ID in restaurants collection
+    rest = await db.restaurants.find_one({
+        "$or": [
+            {"id": int(restaurant_id) if restaurant_id.isdigit() else -1},
+            {"id": restaurant_id},
+            {"name": {"$regex": f"^{restaurant_id}$", "$options": "i"}}
+        ]
+    })
+
+    if rest:
+        rest_id = rest.get("id")
+        rest_name = rest.get("name")
+        or_conditions = []
+        if rest_id is not None:
+            or_conditions.append({"restaurant_id": rest_id})
+            if isinstance(rest_id, int):
+                or_conditions.append({"restaurant_id": str(rest_id)})
+            elif str(rest_id).isdigit():
+                or_conditions.append({"restaurant_id": int(rest_id)})
+        if rest_name:
+            or_conditions.append({"restaurant_id": rest_name})
+            or_conditions.append({"restaurant_name": rest_name})
+
+        query = {**base_filter, "$or": or_conditions} if or_conditions else base_filter
+        cursor = db.menu_items.find(query, {"_id": 0})
+        items = await cursor.to_list(length=500)
+        return {"items": items}
+
+    # 3. Fallback: search menu_items directly by string ID or restaurant_name
+    query = {
+        **base_filter,
+        "$or": [
+            {"restaurant_id": restaurant_id},
+            {"restaurant_name": {"$regex": f"^{restaurant_id}$", "$options": "i"}}
+        ]
+    }
     cursor = db.menu_items.find(query, {"_id": 0})
     items = await cursor.to_list(length=500)
     return {"items": items}

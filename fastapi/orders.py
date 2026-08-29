@@ -172,15 +172,16 @@ async def get_user_order_history(authorization: str = Header(...)):
 
 
 @router.get("/orders/restaurant/{restaurant_id}")
-async def get_restaurant_orders(restaurant_id: int, authorization: str = Header(...)):
+async def get_restaurant_orders(restaurant_id: str, authorization: str = Header(...)):
     token = authorization.replace("Bearer ", "")
     rid = await get_restaurant_from_token(token)
-    if rid != restaurant_id:
+    if str(rid) != str(restaurant_id):
         raise HTTPException(status_code=403, detail="Not authorized")
 
     db = get_db()
+    r_id = int(restaurant_id) if str(restaurant_id).isdigit() else restaurant_id
     cursor = db.orders.find(
-        {"restaurant_id": restaurant_id, "status": {"$ne": "given"}},
+        {"$or": [{"restaurant_id": r_id}, {"restaurant_id": str(r_id)}], "status": {"$ne": "given"}},
         {"_id": 0}
     ).sort("created_at", 1)
 
@@ -208,15 +209,16 @@ async def get_restaurant_orders(restaurant_id: int, authorization: str = Header(
 
 
 @router.get("/orders/restaurant/{restaurant_id}/history")
-async def get_restaurant_order_history(restaurant_id: int, authorization: str = Header(...)):
+async def get_restaurant_order_history(restaurant_id: str, authorization: str = Header(...)):
     token = authorization.replace("Bearer ", "")
     rid = await get_restaurant_from_token(token)
-    if rid != restaurant_id:
+    if str(rid) != str(restaurant_id):
         raise HTTPException(status_code=403, detail="Not authorized")
 
     db = get_db()
+    r_id = int(restaurant_id) if str(restaurant_id).isdigit() else restaurant_id
     cursor = db.orders.find(
-        {"restaurant_id": restaurant_id, "status": "given"},
+        {"$or": [{"restaurant_id": r_id}, {"restaurant_id": str(r_id)}], "status": "given"},
         {"_id": 0}
     ).sort("created_at", -1).limit(100)
 

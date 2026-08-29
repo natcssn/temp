@@ -1,0 +1,13 @@
+fastapi[all]
+uvicorn[standard]
+pydantic[email]
+bcrypt
+python-multipart
+aiofiles
+email-validator
+motor
+pymongo
+certifi
+python-dotenv
+razorpay
+rapidocr-onnxruntime

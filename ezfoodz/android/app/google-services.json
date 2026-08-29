@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "527895736417",
+    "project_id": "business-2c38a",
+    "storage_bucket": "business-2c38a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:527895736417:android:e92b6055ebe87716943a20",
+        "android_client_info": {
+          "package_name": "com.ezfoodz.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "527895736417-c5aepkvojae8isvdvs14tlbb9a4o6fjc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ezfoodz.app",
+            "certificate_hash": "a9371570729dba654764fe8a6c8b3158cb9f9ab3"
+          }
+        },
+        {
+          "client_id": "527895736417-b7dchh35mf8506afk5r5up3m0qa92rv0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4HKcVKSxIsbFU6C3H926pCRhEaAmrCFo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "527895736417-b7dchh35mf8506afk5r5up3m0qa92rv0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

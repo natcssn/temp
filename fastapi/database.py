@@ -49,7 +49,8 @@ async def connect_db():
 
     try:
         client_kwargs = {}
-        if certifi is not None:
+        is_tls = "mongodb+srv://" in prepared_url or "tls=true" in prepared_url.lower() or "ssl=true" in prepared_url.lower()
+        if is_tls and certifi is not None:
             client_kwargs["tlsCAFile"] = certifi.where()
 
         client = AsyncIOMotorClient(prepared_url, **client_kwargs)

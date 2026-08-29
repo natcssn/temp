@@ -1,0 +1,74 @@
+﻿services:
+  # 1. MongoDB Database
+  mongo:
+    image: mongo:latest
+    container_name: ezfoodz-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ezfoodz-network
+
+  # 2. FastAPI Backend Service
+  api:
+    build:
+      context: ./fastapi
+      dockerfile: Dockerfile
+    container_name: ezfoodz-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - MONGO_DB=ezfoodz
+      - MONGO_AUTH_SOURCE=admin
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-rzp_test_sample}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-sample_secret}
+    volumes:
+      - ./fastapi/uploads:/app/uploads
+      - ./fastapi/monthly logs:/app/monthly logs
+    depends_on:
+      - mongo
+    networks:
+      - ezfoodz-network
+
+  # 3. Restaurant Management Web Portal (React + Vite)
+  restaurant-web:
+    build:
+      context: ./restaurant_website
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:8000
+    container_name: ezfoodz-restaurant-web
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - ezfoodz-network
+
+  # 4. Customer Mobile/Web App (Flutter Web)
+  customer-web:
+    build:
+      context: ./ezfoodz
+      dockerfile: Dockerfile
+      args:
+        - API_BASE_URL=http://localhost:8000
+    container_name: ezfoodz-customer-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    networks:
+      - ezfoodz-network
+
+volumes:
+  mongo_data:
+
+networks:
+  ezfoodz-network:
+    driver: bridge

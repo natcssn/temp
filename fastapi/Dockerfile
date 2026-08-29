@@ -19,6 +19,8 @@ COPY . .
 # Ensure directory structure exists
 RUN mkdir -p uploads static/dashboard admin_dashboard
 
+ENV PORT=8000
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Support dynamic PORT for Google Cloud Run ($PORT) and local Docker (8000)
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

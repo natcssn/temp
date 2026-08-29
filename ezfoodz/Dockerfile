@@ -14,11 +14,13 @@ COPY . .
 ARG API_BASE_URL=http://localhost:8000
 RUN flutter build web --release --dart-define=API_BASE_URL=${API_BASE_URL}
 
-# Stage 2: Serve with lightweight Nginx
+# Stage 2: Serve with lightweight Nginx (Supports dynamic $PORT on Google Cloud Run)
 FROM nginx:alpine
 
+ENV PORT=80
+
 COPY --from=build /app/build/web /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
 
